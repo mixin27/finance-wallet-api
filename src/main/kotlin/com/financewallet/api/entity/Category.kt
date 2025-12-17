@@ -20,20 +20,20 @@ data class Category(
     val parentCategory: Category? = null,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String,
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     val type: CategoryType,
 
     @Column(length = 7)
-    val color: String? = null,
+    var color: String? = null,
 
     @Column(length = 100)
-    val icon: String? = null,
+    var icon: String? = null,
 
     @Column(nullable = false)
-    val displayOrder: Int = 0,
+    var displayOrder: Int = 0,
 
     @Column(nullable = false)
     val isSystem: Boolean = false,
