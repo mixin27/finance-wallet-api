@@ -26,10 +26,10 @@ data class Budget(
     val currency: Currency,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String,
 
     @Column(nullable = false, precision = 19, scale = 4)
-    val amount: BigDecimal,
+    var amount: BigDecimal,
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
@@ -41,7 +41,7 @@ data class Budget(
     val endDate: LocalDate? = null,
 
     @Column(nullable = false, precision = 5, scale = 2)
-    val alertThreshold: BigDecimal = BigDecimal("80"),
+    var alertThreshold: BigDecimal = BigDecimal("80"),
 
     @Column(nullable = false)
     var isActive: Boolean = true,
