@@ -46,6 +46,7 @@ class SecurityConfig(
                     // Public endpoints (WITHOUT /api prefix since context-path adds it)
                     .requestMatchers(
                         "/auth/**",
+                        "/uploads/**",
                         "/health",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
