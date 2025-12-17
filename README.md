@@ -45,7 +45,7 @@ A comprehensive RESTful API for personal finance management, built with Spring B
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/finance-wallet-api.git
+git clone https://github.com/mixin27/finance-wallet-api.git
 cd finance-wallet-api
 ```
 
@@ -449,8 +449,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourname)
+- GitHub: [@mixin27](https://github.com/mixin27)
 
 ---
 
