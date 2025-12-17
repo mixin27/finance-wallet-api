@@ -26,24 +26,24 @@ data class Goal(
     val currency: Currency,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String,
 
     @Column(columnDefinition = "TEXT")
-    val description: String? = null,
+    var description: String? = null,
 
     @Column(nullable = false, precision = 19, scale = 4)
-    val targetAmount: BigDecimal,
+    var targetAmount: BigDecimal,
 
     @Column(nullable = false, precision = 19, scale = 4)
     var currentAmount: BigDecimal = BigDecimal.ZERO,
 
-    val targetDate: LocalDate? = null,
+    var targetDate: LocalDate? = null,
 
     @Column(length = 7)
-    val color: String? = null,
+    var color: String? = null,
 
     @Column(length = 100)
-    val icon: String? = null,
+    var icon: String? = null,
 
     @Column(nullable = false)
     var isCompleted: Boolean = false,
