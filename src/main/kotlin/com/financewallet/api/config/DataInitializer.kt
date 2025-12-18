@@ -73,6 +73,7 @@ class DataInitializer(
 
         val currencies = listOf(
             Currency(code = "USD", name = "US Dollar", symbol = "$", decimalPlaces = 2),
+            Currency(code = "MMK", name = "Myanmar Kyat", symbol = "MMK", decimalPlaces = 0),
             Currency(code = "EUR", name = "Euro", symbol = "€", decimalPlaces = 2),
             Currency(code = "GBP", name = "British Pound", symbol = "£", decimalPlaces = 2),
             Currency(code = "JPY", name = "Japanese Yen", symbol = "¥", decimalPlaces = 0),
