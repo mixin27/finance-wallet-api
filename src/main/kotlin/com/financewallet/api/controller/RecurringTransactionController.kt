@@ -5,6 +5,7 @@ import com.financewallet.api.dto.request.recurring.UpdateRecurringTransactionReq
 import com.financewallet.api.dto.response.common.ApiResponse
 import com.financewallet.api.dto.response.recurring.RecurringTransactionResponse
 import com.financewallet.api.service.recurring.RecurringTransactionService
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -13,6 +14,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/recurring-transactions")
+@Tag(name = "Recurring Transactions", description = "Recurring transaction management endpoints")
 class RecurringTransactionController(
     private val recurringTransactionService: RecurringTransactionService
 ) {

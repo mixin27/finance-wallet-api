@@ -4,12 +4,14 @@ import com.financewallet.api.dto.request.user.UpdateUserPreferenceRequest
 import com.financewallet.api.dto.response.common.ApiResponse
 import com.financewallet.api.dto.response.user.UserPreferenceResponse
 import com.financewallet.api.service.user.UserPreferenceService
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/user/preferences")
+@Tag(name = "User Preferences", description = "User Preferences management endpoints")
 class UserPreferenceController(
     private val userPreferenceService: UserPreferenceService
 ) {

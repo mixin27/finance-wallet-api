@@ -6,6 +6,7 @@ import com.financewallet.api.dto.request.goal.UpdateGoalRequest
 import com.financewallet.api.dto.response.common.ApiResponse
 import com.financewallet.api.dto.response.goal.GoalResponse
 import com.financewallet.api.service.goal.GoalService
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,6 +15,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/goals")
+@Tag(name = "Goals", description = "Goal management endpoints")
 class GoalController(
     private val goalService: GoalService
 ) {

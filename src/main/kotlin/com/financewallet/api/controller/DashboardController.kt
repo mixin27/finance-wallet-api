@@ -4,6 +4,7 @@ import com.financewallet.api.dto.response.common.ApiResponse
 import com.financewallet.api.dto.response.dashboard.DashboardResponse
 import com.financewallet.api.dto.response.dashboard.StatisticsResponse
 import com.financewallet.api.service.dashboard.DashboardService
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -85,6 +86,7 @@ class DashboardController(
      * GET /api/dashboard/statistics/last-month
      */
     @GetMapping("/statistics/last-month")
+    @Tag(name = "Dashboard", description = "Dashboard management endpoints")
     fun getLastMonthStatistics(): ResponseEntity<ApiResponse<StatisticsResponse>> {
         val lastMonth = LocalDate.now().minusMonths(1)
         val startDate = lastMonth.with(TemporalAdjusters.firstDayOfMonth())
