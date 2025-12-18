@@ -34,14 +34,14 @@ data class RecurringTransaction(
     val type: TransactionType,
 
     @Column(nullable = false, precision = 19, scale = 4)
-    val amount: BigDecimal,
+    var amount: BigDecimal,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "currency_id", nullable = false)
     val currency: Currency,
 
     @Column(columnDefinition = "TEXT")
-    val description: String? = null,
+    var description: String? = null,
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
@@ -53,7 +53,7 @@ data class RecurringTransaction(
     @Column(nullable = false)
     val startDate: LocalDate,
 
-    val endDate: LocalDate? = null,
+    var endDate: LocalDate? = null,
 
     @Column(nullable = false)
     var nextOccurrenceDate: LocalDate,
