@@ -7,6 +7,7 @@ import com.financewallet.api.exception.ResourceNotFoundException
 import com.financewallet.api.repository.TransactionRepository
 import com.financewallet.api.service.auth.AuthService
 import com.financewallet.api.service.file.FileStorageService
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
 import org.springframework.http.HttpHeaders
@@ -21,6 +22,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/transactions")
+@Tag(name = "Attachments", description = "Attachment upload management endpoints")
 class FileController(
     private val fileStorageService: FileStorageService,
     private val transactionRepository: TransactionRepository,

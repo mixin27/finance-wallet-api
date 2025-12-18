@@ -28,6 +28,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    // HealthIndicator
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // File Upload/Storage (if needed later)
+    // implementation("org.springframework.boot:spring-boot-starter-web")
+
 
     // Kotlin Support
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -45,14 +50,13 @@ dependencies {
     implementation("org.modelmapper:modelmapper:3.2.1")
 
     // SpringDoc OpenAPI (Swagger) - API Documentation
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
 
     // Coroutines (Optional - for async operations)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
 
-    // File Upload/Storage (if needed later)
-    // implementation("org.springframework.boot:spring-boot-starter-web")
+    // implementation("com.bucket4j:bucket4j_jdk17-core:8.15.0")
 
     // Development Tools
     developmentOnly("org.springframework.boot:spring-boot-devtools")

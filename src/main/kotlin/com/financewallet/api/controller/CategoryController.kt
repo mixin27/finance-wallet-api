@@ -6,6 +6,7 @@ import com.financewallet.api.dto.response.category.CategoryResponse
 import com.financewallet.api.dto.response.common.ApiResponse
 import com.financewallet.api.entity.CategoryType
 import com.financewallet.api.service.category.CategoryService
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,6 +15,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/categories")
+@Tag(name = "Categories", description = "Category management endpoints")
 class CategoryController(
     private val categoryService: CategoryService
 ) {
