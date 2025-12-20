@@ -188,7 +188,7 @@ class DashboardService(
 
         return results.map { result ->
             val category = result[0] as? com.financewallet.api.entity.Category
-            val amount = BigDecimal.valueOf(result[1] as Double)
+            val amount = result[1] as BigDecimal
 
             CategoryBreakdown(
                 categoryId = category?.id,
