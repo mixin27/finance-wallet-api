@@ -1,5 +1,6 @@
 package com.financewallet.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
@@ -9,11 +10,12 @@ import java.util.*
     name = "tags",
     uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "name"])]
 )
-data class Tag(
+class Tag(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     val user: User,

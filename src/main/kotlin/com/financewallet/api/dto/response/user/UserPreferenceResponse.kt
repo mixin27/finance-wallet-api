@@ -11,6 +11,7 @@ data class UserPreferenceResponse(
     val language: String,
     val dateFormat: String,
     val firstDayOfWeek: Short,
+    val timezone: String,
     val theme: String,
     val enableNotifications: Boolean,
     val enableBiometric: Boolean,

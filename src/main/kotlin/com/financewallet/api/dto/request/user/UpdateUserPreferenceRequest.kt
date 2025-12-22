@@ -21,6 +21,12 @@ data class UpdateUserPreferenceRequest(
     @field:Max(value = 6, message = "First day of week must be between 0 (Sunday) and 6 (Saturday)")
     val firstDayOfWeek: Short? = null,
 
+    @field:Pattern(
+        regexp = "^(UTC|GMT|[A-Z][a-z]+/[A-Z][a-z_]+)$",
+        message = "Invalid timezone format (e.g., UTC, America/New_York, Europe/London)"
+    )
+    val timezone: String? = null,
+
     val theme: Theme? = null,
 
     val enableNotifications: Boolean? = null,

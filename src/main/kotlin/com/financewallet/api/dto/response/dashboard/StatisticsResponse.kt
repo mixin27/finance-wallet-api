@@ -1,5 +1,6 @@
 package com.financewallet.api.dto.response.dashboard
 
+import com.financewallet.api.dto.response.account.CurrencyInfo
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -13,7 +14,8 @@ data class StatisticsResponse(
     val avgDailyExpense: BigDecimal,
     val expensesByCategory: List<CategoryBreakdown>,
     val incomeByCategory: List<CategoryBreakdown>,
-    val dailyTrends: List<DailyTrend>
+    val dailyTrends: List<DailyTrend>,
+    val defaultCurrency: CurrencyInfo
 )
 
 data class DailyTrend(

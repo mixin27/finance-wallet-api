@@ -1,5 +1,6 @@
 package com.financewallet.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
@@ -49,15 +50,19 @@ data class User(
 
     var lastLoginAt: LocalDateTime? = null,
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     val refreshTokens: MutableList<RefreshToken> = mutableListOf(),
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     val accounts: MutableList<Account> = mutableListOf(),
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     val transactions: MutableList<Transaction> = mutableListOf(),
 
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     var preferences: UserPreference? = null
 )

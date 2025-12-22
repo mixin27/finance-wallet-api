@@ -1,10 +1,13 @@
 package com.financewallet.api.dto.response.dashboard
 
+import com.financewallet.api.dto.response.account.CurrencyInfo
 import java.math.BigDecimal
 import java.util.*
 
 data class DashboardResponse(
     val totalBalance: BigDecimal,
+    val defaultCurrency: CurrencyInfo, // Show which currency
+    val accountBalances: List<AccountBalanceInfo>,
     val monthIncome: BigDecimal,
     val monthExpenses: BigDecimal,
     val savings: BigDecimal,
@@ -20,6 +23,15 @@ data class CategoryBreakdown(
     val categoryId: UUID?,
     val categoryName: String,
     val amount: BigDecimal,
+    val amountInDefaultCurrency: BigDecimal,
     val color: String?,
     val icon: String?
+)
+
+data class AccountBalanceInfo(
+    val accountId: UUID,
+    val accountName: String,
+    val balance: BigDecimal,
+    val currency: CurrencyInfo,
+    val balanceInDefaultCurrency: BigDecimal  // Converted amount
 )

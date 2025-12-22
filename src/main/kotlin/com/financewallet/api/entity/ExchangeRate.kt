@@ -13,7 +13,7 @@ import java.util.*
         UniqueConstraint(columnNames = ["from_currency_id", "to_currency_id", "effective_date"])
     ]
 )
-data class ExchangeRate(
+class ExchangeRate(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,

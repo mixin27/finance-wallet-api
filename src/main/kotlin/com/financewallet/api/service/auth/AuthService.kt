@@ -244,6 +244,8 @@ class AuthService(
      * Get current authenticated user
      */
     fun getCurrentUser(): User {
+        logger.info("Fetching current user")
+
         val authentication = SecurityContextHolder.getContext().authentication
         val userPrincipal = authentication?.principal as UserPrincipal
 

@@ -1,5 +1,6 @@
 package com.financewallet.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -7,11 +8,12 @@ import java.util.*
 
 @Entity
 @Table(name = "accounts")
-data class Account(
+class Account(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     val user: User,
@@ -57,6 +59,7 @@ data class Account(
     @Column(nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
 
+    @JsonIgnore
     @OneToMany(mappedBy = "account", cascade = [CascadeType.ALL])
     val transactions: MutableList<Transaction> = mutableListOf()
 )

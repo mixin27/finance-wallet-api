@@ -1,11 +1,17 @@
 package com.financewallet.api.service.dashboard
 
+import com.financewallet.api.dto.response.account.CurrencyInfo
 import com.financewallet.api.dto.response.dashboard.*
+import com.financewallet.api.entity.Currency
 import com.financewallet.api.entity.TransactionType
+import com.financewallet.api.entity.User
 import com.financewallet.api.repository.AccountRepository
 import com.financewallet.api.repository.BudgetRepository
+import com.financewallet.api.repository.ExchangeRateRepository
 import com.financewallet.api.repository.TransactionRepository
 import com.financewallet.api.service.auth.AuthService
+import com.financewallet.api.service.user.UserPreferenceService
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -15,154 +21,199 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.YearMonth
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
+
 
 @Service
 class DashboardService(
     private val accountRepository: AccountRepository,
     private val transactionRepository: TransactionRepository,
     private val budgetRepository: BudgetRepository,
-    private val authService: AuthService
+    private val exchangeRateRepository: ExchangeRateRepository,
+    private val authService: AuthService,
+    private val userPreferenceService: UserPreferenceService
 ) {
+//    private val logger = LoggerFactory.getLogger(DashboardService::class.java)
+
     /**
      * Get complete dashboard data
+     */
+    /**
+     * Get complete dashboard data with proper currency conversion
      */
     @Transactional(readOnly = true)
     fun getDashboard(): DashboardResponse {
         val currentUser = authService.getCurrentUser()
-        val now = LocalDateTime.now()
-        val today = LocalDate.now()
 
-        // Current month dates
+        // Get user preferences
+        val preferences = userPreferenceService.getUserPreferences()
+        val defaultCurrency = userPreferenceService.getDefaultCurrency()
+
+        val userTimezone = ZoneId.of(preferences.timezone)
+
+        // Get current date in user's timezone
+        val now = ZonedDateTime.now(userTimezone)
+        val today = now.toLocalDate()
+
+        // Get all active accounts with currency conversion
+        val accounts = accountRepository.findByUserAndIsActiveTrue(currentUser)
+        val accountBalances = accounts
+            .filter { it.isIncludedInTotal }
+            .map { account ->
+                val balanceInDefaultCurrency = convertToDefaultCurrency(
+                    amount = account.currentBalance,
+                    fromCurrency = account.currency,
+                    toCurrency = defaultCurrency
+                )
+
+                AccountBalanceInfo(
+                    accountId = account.id!!,
+                    accountName = account.name,
+                    balance = account.currentBalance,
+                    currency = CurrencyInfo(
+                        id = account.currency.id!!,
+                        code = account.currency.code,
+                        symbol = account.currency.symbol,
+                        name = account.currency.name
+                    ),
+                    balanceInDefaultCurrency = balanceInDefaultCurrency
+                )
+            }
+
+        val totalBalance = accountBalances.sumOf { it.balanceInDefaultCurrency }
+
+        // Current month date range in user's timezone
         val firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth())
         val lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth())
-        val startOfMonth = firstDayOfMonth.atStartOfDay()
+        val startOfMonth = firstDayOfMonth.atStartOfDay(userTimezone).toLocalDateTime()
         val endOfMonth = lastDayOfMonth.atTime(LocalTime.MAX)
 
-        // Get total balance from all accounts
-        val totalBalance = BigDecimal.valueOf(
-            accountRepository.getTotalBalance(currentUser)
-        )
+        // Get transactions and convert to default currency
+        val transactions = transactionRepository.findByUserAndDateRange(
+            currentUser,
+            startOfMonth,
+            endOfMonth,
+            Pageable.unpaged()
+        ).content
 
-        // Get this month's income and expenses
-        val monthIncome = BigDecimal.valueOf(
-            transactionRepository.sumByUserAndTypeAndDateRange(
-                currentUser,
-                TransactionType.INCOME,
-                startOfMonth,
-                endOfMonth
-            )
-        )
+        val monthIncome = transactions
+            .filter { it.type == TransactionType.INCOME }
+            .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
 
-        val monthExpenses = BigDecimal.valueOf(
-            transactionRepository.sumByUserAndTypeAndDateRange(
-                currentUser,
-                TransactionType.EXPENSE,
-                startOfMonth,
-                endOfMonth
-            )
-        )
+        val monthExpenses = transactions
+            .filter { it.type == TransactionType.EXPENSE }
+            .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
 
-        // Calculate savings
         val savings = monthIncome - monthExpenses
 
-        // Get previous month for comparison
+        // Previous month comparison
         val previousMonth = firstDayOfMonth.minusMonths(1)
-        val prevMonthStart = previousMonth.with(TemporalAdjusters.firstDayOfMonth()).atStartOfDay()
-        val prevMonthEnd = previousMonth.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX)
+        val prevMonthStart = previousMonth.with(TemporalAdjusters.firstDayOfMonth())
+            .atStartOfDay(userTimezone).toLocalDateTime()
+        val prevMonthEnd = previousMonth.with(TemporalAdjusters.lastDayOfMonth())
+            .atTime(LocalTime.MAX)
 
-        val prevMonthIncome = BigDecimal.valueOf(
-            transactionRepository.sumByUserAndTypeAndDateRange(
-                currentUser,
-                TransactionType.INCOME,
-                prevMonthStart,
-                prevMonthEnd
-            )
-        )
+        val prevTransactions = transactionRepository.findByUserAndDateRange(
+            currentUser,
+            prevMonthStart,
+            prevMonthEnd,
+            Pageable.unpaged()
+        ).content
 
-        val prevMonthExpenses = BigDecimal.valueOf(
-            transactionRepository.sumByUserAndTypeAndDateRange(
-                currentUser,
-                TransactionType.EXPENSE,
-                prevMonthStart,
-                prevMonthEnd
-            )
-        )
+        val prevMonthIncome = prevTransactions
+            .filter { it.type == TransactionType.INCOME }
+            .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
 
-        // Calculate percentage changes
+        val prevMonthExpenses = prevTransactions
+            .filter { it.type == TransactionType.EXPENSE }
+            .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
+
         val incomeChange = calculatePercentageChange(prevMonthIncome, monthIncome)
         val expenseChange = calculatePercentageChange(prevMonthExpenses, monthExpenses)
 
-        // Get top spending categories
-        val categoryBreakdown = getExpensesByCategory(startOfMonth, endOfMonth)
+        // Category breakdown with currency conversion
+        val categoryBreakdown = getExpensesByCategory(startOfMonth, endOfMonth, defaultCurrency, currentUser)
 
-        // Get recent transactions (last 10)
-        val recentTransactions = transactionRepository.findByUserAndDateRange(
-            currentUser,
-            startOfMonth,
-            now,
-            org.springframework.data.domain.PageRequest.of(0, 10)
-        ).content
-
-        // Get active budgets
+        // Active budgets
         val activeBudgets = budgetRepository.findActiveBudgetsForDate(currentUser, today)
 
         return DashboardResponse(
             totalBalance = totalBalance,
+            defaultCurrency = CurrencyInfo(
+                id = defaultCurrency.id!!,
+                code = defaultCurrency.code,
+                symbol = defaultCurrency.symbol,
+                name = defaultCurrency.name
+            ),
+            accountBalances = accountBalances,
             monthIncome = monthIncome,
             monthExpenses = monthExpenses,
             savings = savings,
             incomeChange = incomeChange,
             expenseChange = expenseChange,
             categoryBreakdown = categoryBreakdown,
-            recentTransactionsCount = recentTransactions.size,
+            recentTransactionsCount = transactions.size,
             activeBudgetsCount = activeBudgets.size,
             currentMonth = YearMonth.now().toString()
         )
     }
 
     /**
-     * Get detailed statistics for a date range
+     * Get detailed statistics for date range
      */
     @Transactional(readOnly = true)
     fun getStatistics(startDate: LocalDate, endDate: LocalDate): StatisticsResponse {
         val currentUser = authService.getCurrentUser()
 
-        val startDateTime = startDate.atStartOfDay()
+        // Get user preferences for currency and timezone
+        val preferences = userPreferenceService.getUserPreferences()
+        val defaultCurrency = userPreferenceService.getDefaultCurrency()
+
+        val userTimezone = ZoneId.of(preferences.timezone)
+
+        val startDateTime = startDate.atStartOfDay(userTimezone).toLocalDateTime()
         val endDateTime = endDate.atTime(LocalTime.MAX)
 
-        // Get totals
-        val totalIncome = BigDecimal.valueOf(
-            transactionRepository.sumByUserAndTypeAndDateRange(
-                currentUser,
-                TransactionType.INCOME,
-                startDateTime,
-                endDateTime
-            )
-        )
+        // Get all transactions and convert to default currency
+        val transactions = transactionRepository.findByUserAndDateRange(
+            currentUser,
+            startDateTime,
+            endDateTime,
+            Pageable.unpaged()
+        ).content
 
-        val totalExpenses = BigDecimal.valueOf(
-            transactionRepository.sumByUserAndTypeAndDateRange(
-                currentUser,
-                TransactionType.EXPENSE,
-                startDateTime,
-                endDateTime
-            )
-        )
+        val totalIncome = transactions
+            .filter { it.type == TransactionType.INCOME }
+            .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
+
+        val totalExpenses = transactions
+            .filter { it.type == TransactionType.EXPENSE }
+            .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
 
         val netIncome = totalIncome - totalExpenses
 
-        // Get category breakdown
-        val expensesByCategory = getExpensesByCategory(startDateTime, endDateTime)
-        val incomeByCategory = getIncomeByCategory(startDateTime, endDateTime)
+        // Category breakdowns
+        val expensesByCategory = getExpensesByCategory(startDateTime, endDateTime, defaultCurrency, currentUser)
+        val incomeByCategory = getIncomeByCategory(startDateTime, endDateTime, defaultCurrency)
 
-        // Get daily trends (for charts)
-        val dailyData = getDailyTrends(startDate, endDate)
+        // Daily trends
+        val dailyData = getDailyTrends(startDate, endDate, defaultCurrency, userTimezone)
 
-        // Calculate average per day
-        val dayCount = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
-        val avgDailyIncome = if (dayCount > 0) totalIncome.divide(BigDecimal(dayCount), 2, RoundingMode.HALF_UP) else BigDecimal.ZERO
-        val avgDailyExpense = if (dayCount > 0) totalExpenses.divide(BigDecimal(dayCount), 2, RoundingMode.HALF_UP) else BigDecimal.ZERO
+        // Calculate averages
+        val dayCount = ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
+        val avgDailyIncome = if (dayCount > 0) {
+            totalIncome.divide(BigDecimal(dayCount), 2, RoundingMode.HALF_UP)
+        } else {
+            BigDecimal.ZERO
+        }
+        val avgDailyExpense = if (dayCount > 0) {
+            totalExpenses.divide(BigDecimal(dayCount), 2, RoundingMode.HALF_UP)
+        } else {
+            BigDecimal.ZERO
+        }
 
         return StatisticsResponse(
             startDate = startDate,
@@ -174,88 +225,149 @@ class DashboardService(
             avgDailyExpense = avgDailyExpense,
             expensesByCategory = expensesByCategory,
             incomeByCategory = incomeByCategory,
-            dailyTrends = dailyData
+            dailyTrends = dailyData,
+            defaultCurrency = CurrencyInfo(
+                id = defaultCurrency.id!!,
+                code = defaultCurrency.code,
+                symbol = defaultCurrency.symbol,
+                name = defaultCurrency.name
+            )
         )
     }
 
     /**
-     * Get expenses grouped by category
+     * Convert amount to default currency using exchange rates
      */
-    private fun getExpensesByCategory(startDate: LocalDateTime, endDate: LocalDateTime): List<CategoryBreakdown> {
-        val currentUser = authService.getCurrentUser()
+    private fun convertToDefaultCurrency(
+        amount: BigDecimal,
+        fromCurrency: Currency,
+        toCurrency: Currency
+    ): BigDecimal {
+        if (fromCurrency.id == toCurrency.id) {
+            return amount
+        }
 
-        val results = transactionRepository.getExpensesByCategory(currentUser, startDate, endDate)
+        val exchangeRate = exchangeRateRepository.findLatestRate(
+            fromCurrency,
+            toCurrency,
+            LocalDate.now()
+        )
 
-        return results.map { result ->
-            val category = result[0] as? com.financewallet.api.entity.Category
-            val amount = result[1] as BigDecimal
-
-            CategoryBreakdown(
-                categoryId = category?.id,
-                categoryName = category?.name ?: "Uncategorized",
-                amount = amount,
-                color = category?.color,
-                icon = category?.icon
-            )
-        }.sortedByDescending { it.amount }
+        return if (exchangeRate != null) {
+            amount.multiply(exchangeRate.rate).setScale(2, RoundingMode.HALF_UP)
+        } else {
+//            logger.warn(
+//                "No exchange rate found for ${fromCurrency.code} to ${toCurrency.code}. " +
+//                        "Using 1:1 conversion. Please add exchange rates!"
+//            )
+            amount
+        }
     }
 
     /**
-     * Get income grouped by category
+     * Get expenses grouped by category with currency conversion
      */
-    private fun getIncomeByCategory(startDate: LocalDateTime, endDate: LocalDateTime): List<CategoryBreakdown> {
+    private fun getExpensesByCategory(
+        startDate: LocalDateTime,
+        endDate: LocalDateTime,
+        defaultCurrency: Currency,
+        currentUser: User,
+    ): List<CategoryBreakdown> {
+        val transactions = transactionRepository.findByUserAndDateRange(
+            currentUser,
+            startDate,
+            endDate,
+            Pageable.unpaged()
+        ).content.filter { it.type == TransactionType.EXPENSE }
+
+        return transactions
+            .groupBy { it.category }
+            .map { (category, txns) ->
+                val originalAmount = txns.sumOf { it.amount }
+                val convertedAmount = txns.sumOf {
+                    convertToDefaultCurrency(it.amount, it.currency, defaultCurrency)
+                }
+
+                CategoryBreakdown(
+                    categoryId = category?.id,
+                    categoryName = category?.name ?: "Uncategorized",
+                    amount = originalAmount,
+                    amountInDefaultCurrency = convertedAmount,
+                    color = category?.color,
+                    icon = category?.icon
+                )
+            }
+            .sortedByDescending { it.amountInDefaultCurrency }
+    }
+
+    /**
+     * Get income grouped by category with currency conversion
+     */
+    private fun getIncomeByCategory(
+        startDate: LocalDateTime,
+        endDate: LocalDateTime,
+        defaultCurrency: Currency
+    ): List<CategoryBreakdown> {
         val currentUser = authService.getCurrentUser()
 
         val transactions = transactionRepository.findByUserAndDateRange(
             currentUser,
             startDate,
             endDate,
-            org.springframework.data.domain.Pageable.unpaged()
+            Pageable.unpaged()
         ).content.filter { it.type == TransactionType.INCOME }
 
         return transactions
             .groupBy { it.category }
             .map { (category, txns) ->
+                val originalAmount = txns.sumOf { it.amount }
+                val convertedAmount = txns.sumOf {
+                    convertToDefaultCurrency(it.amount, it.currency, defaultCurrency)
+                }
+
                 CategoryBreakdown(
                     categoryId = category?.id,
                     categoryName = category?.name ?: "Uncategorized",
-                    amount = txns.sumOf { it.amount },
+                    amount = originalAmount,
+                    amountInDefaultCurrency = convertedAmount,
                     color = category?.color,
                     icon = category?.icon
                 )
             }
-            .sortedByDescending { it.amount }
+            .sortedByDescending { it.amountInDefaultCurrency }
     }
 
     /**
-     * Get daily income/expense trends
+     * Get daily trends with currency conversion and timezone support
      */
-    private fun getDailyTrends(startDate: LocalDate, endDate: LocalDate): List<DailyTrend> {
+    private fun getDailyTrends(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        defaultCurrency: Currency,
+        userTimezone: ZoneId
+    ): List<DailyTrend> {
         val currentUser = authService.getCurrentUser()
         val trends = mutableListOf<DailyTrend>()
 
         var currentDate = startDate
         while (!currentDate.isAfter(endDate)) {
-            val dayStart = currentDate.atStartOfDay()
+            val dayStart = currentDate.atStartOfDay(userTimezone).toLocalDateTime()
             val dayEnd = currentDate.atTime(LocalTime.MAX)
 
-            val income = BigDecimal.valueOf(
-                transactionRepository.sumByUserAndTypeAndDateRange(
-                    currentUser,
-                    TransactionType.INCOME,
-                    dayStart,
-                    dayEnd
-                )
-            )
+            val dayTransactions = transactionRepository.findByUserAndDateRange(
+                currentUser,
+                dayStart,
+                dayEnd,
+                Pageable.unpaged()
+            ).content
 
-            val expenses = BigDecimal.valueOf(
-                transactionRepository.sumByUserAndTypeAndDateRange(
-                    currentUser,
-                    TransactionType.EXPENSE,
-                    dayStart,
-                    dayEnd
-                )
-            )
+            val income = dayTransactions
+                .filter { it.type == TransactionType.INCOME }
+                .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
+
+            val expenses = dayTransactions
+                .filter { it.type == TransactionType.EXPENSE }
+                .sumOf { convertToDefaultCurrency(it.amount, it.currency, defaultCurrency) }
 
             trends.add(
                 DailyTrend(

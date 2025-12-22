@@ -6,7 +6,7 @@ import java.util.*
 
 @Entity
 @Table(name = "transaction_attachments")
-data class TransactionAttachment(
+class TransactionAttachment(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,

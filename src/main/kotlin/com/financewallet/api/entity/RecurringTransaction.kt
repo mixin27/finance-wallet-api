@@ -1,5 +1,6 @@
 package com.financewallet.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -8,15 +9,17 @@ import java.util.*
 
 @Entity
 @Table(name = "recurring_transactions")
-data class RecurringTransaction(
+class RecurringTransaction(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     val user: User,
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     val account: Account,
@@ -25,6 +28,7 @@ data class RecurringTransaction(
     @JoinColumn(name = "category_id")
     val category: Category? = null,
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "to_account_id")
     val toAccount: Account? = null,

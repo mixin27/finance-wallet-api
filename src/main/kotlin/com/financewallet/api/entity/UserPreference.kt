@@ -1,5 +1,6 @@
 package com.financewallet.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
@@ -7,11 +8,12 @@ import java.util.*
 
 @Entity
 @Table(name = "user_preferences")
-data class UserPreference(
+ class UserPreference(
     @Id
     @Column(name = "user_id")
     val userId: UUID,
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     val user: User? = null,
@@ -28,6 +30,9 @@ data class UserPreference(
 
     @Column(nullable = false)
     var firstDayOfWeek: Short = 1,
+
+    @Column(length = 50, nullable = false)
+    var timezone: String = "UTC",
 
     @Column(length = 20, nullable = false)
     @Enumerated(EnumType.STRING)

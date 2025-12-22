@@ -1,20 +1,23 @@
 package com.financewallet.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @Table(name = "categories")
-data class Category(
+class Category(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     val user: User? = null, // null for system categories
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_category_id")
     val parentCategory: Category? = null,
@@ -47,6 +50,7 @@ data class Category(
     @Column(nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now(),
 
+    @JsonIgnore
     @OneToMany(mappedBy = "parentCategory")
     val subCategories: MutableList<Category> = mutableListOf()
 )

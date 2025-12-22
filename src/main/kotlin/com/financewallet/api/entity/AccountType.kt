@@ -6,7 +6,7 @@ import java.util.*
 
 @Entity
 @Table(name = "account_types")
-data class AccountType(
+class AccountType(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
