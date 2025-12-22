@@ -1,4 +1,4 @@
-# Finance Wallet API - Testing Guide
+# Finance Wallet API - Auth and Currency
 
 ## Prerequisites
 
