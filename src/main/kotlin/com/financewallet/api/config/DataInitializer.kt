@@ -67,7 +67,12 @@ class DataInitializer(
             AccountType(name = "Digital Wallet", description = "PayPal, Venmo, etc.", icon = "📱")
         )
 
-        accountTypeRepository.saveAll(accountTypes)
+        for (act in accountTypes) {
+            val exit = accountTypeRepository.findByName(act.name)
+            if (exit == null) {
+                accountTypeRepository.save(act)
+            }
+        }
         logger.info("Account types initialized successfully")
     }
 
@@ -77,24 +82,6 @@ class DataInitializer(
         val currencies = listOf(
             Currency(code = "USD", name = "US Dollar", symbol = "$", decimalPlaces = 2),
             Currency(code = "EUR", name = "Euro", symbol = "€", decimalPlaces = 2),
-            Currency(code = "GBP", name = "British Pound", symbol = "£", decimalPlaces = 2),
-            Currency(code = "JPY", name = "Japanese Yen", symbol = "¥", decimalPlaces = 0),
-            Currency(code = "CNY", name = "Chinese Yuan", symbol = "¥", decimalPlaces = 2),
-            Currency(code = "INR", name = "Indian Rupee", symbol = "₹", decimalPlaces = 2),
-            Currency(code = "AUD", name = "Australian Dollar", symbol = "A$", decimalPlaces = 2),
-            Currency(code = "CAD", name = "Canadian Dollar", symbol = "C$", decimalPlaces = 2),
-            Currency(code = "CHF", name = "Swiss Franc", symbol = "Fr", decimalPlaces = 2),
-            Currency(code = "SEK", name = "Swedish Krona", symbol = "kr", decimalPlaces = 2),
-            Currency(code = "NZD", name = "New Zealand Dollar", symbol = "NZ$", decimalPlaces = 2),
-            Currency(code = "SGD", name = "Singapore Dollar", symbol = "S$", decimalPlaces = 2),
-            Currency(code = "HKD", name = "Hong Kong Dollar", symbol = "HK$", decimalPlaces = 2),
-            Currency(code = "KRW", name = "South Korean Won", symbol = "₩", decimalPlaces = 0),
-            Currency(code = "MXN", name = "Mexican Peso", symbol = "$", decimalPlaces = 2),
-            Currency(code = "BRL", name = "Brazilian Real", symbol = "R$", decimalPlaces = 2),
-            Currency(code = "ZAR", name = "South African Rand", symbol = "R", decimalPlaces = 2),
-            Currency(code = "RUB", name = "Russian Ruble", symbol = "₽", decimalPlaces = 2),
-            Currency(code = "TRY", name = "Turkish Lira", symbol = "₺", decimalPlaces = 2),
-            Currency(code = "AED", name = "UAE Dirham", symbol = "د.إ", decimalPlaces = 2),
             Currency(code = "MMK", name = "Myanmar Kyat", symbol = "MMK", decimalPlaces = 2)
         )
 
@@ -138,35 +125,10 @@ class DataInitializer(
 
         // USD as base currency
         addRate("USD", "EUR", BigDecimal("0.92"))
-        addRate("USD", "GBP", BigDecimal("0.79"))
-        addRate("USD", "JPY", BigDecimal("149.50"))
-        addRate("USD", "CNY", BigDecimal("7.24"))
-        addRate("USD", "INR", BigDecimal("83.12"))
-        addRate("USD", "AUD", BigDecimal("1.52"))
-        addRate("USD", "CAD", BigDecimal("1.36"))
-        addRate("USD", "CHF", BigDecimal("0.88"))
-        addRate("USD", "SEK", BigDecimal("10.42"))
-        addRate("USD", "NZD", BigDecimal("1.63"))
-        addRate("USD", "SGD", BigDecimal("1.34"))
-        addRate("USD", "HKD", BigDecimal("7.81"))
-        addRate("USD", "KRW", BigDecimal("1312.50"))
-        addRate("USD", "MXN", BigDecimal("17.05"))
-        addRate("USD", "BRL", BigDecimal("4.92"))
-        addRate("USD", "ZAR", BigDecimal("18.35"))
-        addRate("USD", "RUB", BigDecimal("91.50"))
-        addRate("USD", "TRY", BigDecimal("32.25"))
-        addRate("USD", "AED", BigDecimal("3.67"))
         addRate("USD", "MMK", BigDecimal("3900.00"))
 
-        // EUR to other major currencies
-        addRate("EUR", "GBP", BigDecimal("0.86"))
-        addRate("EUR", "JPY", BigDecimal("162.50"))
-        addRate("EUR", "CNY", BigDecimal("7.87"))
-        addRate("EUR", "CHF", BigDecimal("0.96"))
-
-        // GBP to other major currencies
-        addRate("GBP", "JPY", BigDecimal("189.24"))
-        addRate("GBP", "CHF", BigDecimal("1.11"))
+        // EUR to other currencies
+        addRate("EUR", "MMK", BigDecimal("4575.00"))
 
         exchangeRateRepository.saveAll(rates)
         logger.info("${rates.size} exchange rates initialized successfully")

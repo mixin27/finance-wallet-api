@@ -7,7 +7,8 @@ data class AccountSummaryResponse(
     val activeAccounts: Int,
     val totalBalance: BigDecimal,
     val balanceByCurrency: List<CurrencyBalance>,
-    val accounts: List<AccountResponse>
+    val accounts: List<AccountResponse>,
+    val defaultCurrency: CurrencyInfo,
 )
 
 data class CurrencyBalance(

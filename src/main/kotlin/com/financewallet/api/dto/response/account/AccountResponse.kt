@@ -1,5 +1,6 @@
 package com.financewallet.api.dto.response.account
 
+import com.financewallet.api.entity.Currency
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -12,9 +13,11 @@ data class AccountResponse(
     val description: String?,
     val initialBalance: BigDecimal,
     val currentBalance: BigDecimal,
+    val balanceInDefaultCurrency: BigDecimal,
     val color: String?,
     val icon: String?,
     val isIncludedInTotal: Boolean,
+    val displayOrder: Int,
     val isActive: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
